@@ -38,6 +38,20 @@ class sms_tester(object):
 			return None
 
 
+###
+# Checks mmssms.db table for the most recent sms from the tn given
+#
+# param:
+#  device - serial number of the term device that received the sms, with the "-s " included, ex: "-s ABC123456"
+#  tn - telephone # of the orig device that sent the sms
+#
+# returns String of the message, stripped of any leading or trailing spaces
+###
+	def get_last_sms(self, device, tn):
+		message = subprocess.check_output("adb " + device + " shell sqlite3 /data/data/com.android.providers.telephony/databases/mmssms.db 'SELECT body FROM sms WHERE address='" + tn + "' ORDER BY _id DESC LIMIT 1'", shell=True).strip()
+		return message
+
+
 	###
 	# Main function. Sends <num_of_text> amount of sms between the 2 devices.
 	#  After every sms sent from the orig device, checks for a new incoming sms on the term device
@@ -84,6 +98,7 @@ class sms_tester(object):
 			os.system("adb " + MO_dev + " shell input keyevent 66")
 			print "Sending message #" + str(i)
 
+			#Scripts sleeps while waiting for the incoming sms
 			while last_table_count >= self.interpret_string(subprocess.check_output(sqlite_count, shell=True)) :
 				print "sleeping"
 				if self.debug:
@@ -94,13 +109,15 @@ class sms_tester(object):
 				if self.debug:
 					print "end"
 					print "last table %d" % last_table_count
+			#end while
 
+			#Updates sms counter
 			last_table_count = self.interpret_string(subprocess.check_output(sqlite_count, shell=True))
 
 			if self.debug:
 				print "count " + subprocess.check_output(sqlite_count, shell=True)
 
-			message_received = subprocess.check_output("adb " + MT_dev + " shell sqlite3 /data/data/com.android.providers.telephony/databases/mmssms.db 'SELECT body FROM sms WHERE address='" + MO_tn + "' ORDER BY _id DESC LIMIT 1'", shell=True).strip()
+			message_received = self.get_last_sms(MT_dev, MO_tn)
 
 			if self.debug:
 				print "Message received: '" + message_received + "'"
@@ -112,6 +129,8 @@ class sms_tester(object):
 				print "Message "+ str(i) + " FAILED!!!"
 
 			i = i + 1
+
+		#end while
 
 		return success
 
