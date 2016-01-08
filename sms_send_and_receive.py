@@ -38,7 +38,22 @@ class sms_tester(object):
 			return None
 
 
-
+	###
+	# Main function. Sends <num_of_text> amount of sms between the 2 devices.
+	#  After every sms sent from the orig device, checks for a new incoming sms on the term device
+	#  Checks the message of the new incoming sms against what was sent from the orig device
+	#
+	# param:
+	#  MO_device - serial # of the orig device
+	#  MO_tn - telephone # of the orig device
+	#  MT_device - serial # of the term device
+	#  MT_tn - telephone # of the term device
+	#  message - the message to be sent as an SMS
+	#  num_of_text - the number of SMS to be sent
+	#
+	# returns True, if the orig message matches the term message for all sms sent
+	# returns False, if one or more message does not match
+	###
 	def send_and_receive_sms(self, MO_device, MO_tn, MT_device, MT_tn, message, num_of_text):
 
 		success = True ## Return this flag var
